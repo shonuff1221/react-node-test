@@ -33,17 +33,22 @@ However, the Zod validation schema (`NoticeFormSchema`), the TypeScript types (`
 All five controller handler functions were empty stubs — `//write your code`.
 
 ### Approach
-The service layer (`students-service.js`) and repository layer (`students-repository.js`) were fully implemented with proper error handling, validation, and database queries. The task was to wire the Express request/response cycle to the existing service functions.
+The service layer (`students-service.js`) and repository layer (`students-repository.js`) were fully implemented with proper error handling, validation, and database queries. The task was to wire the Express request/response cycle to the existing service functions, following the same patterns used in the staff controller.
 
 ### Implementation
 
 | Endpoint | Method | Handler | Notes |
 |---|---|---|---|
-| `/api/v1/students` | GET | `handleGetAllStudents` | Passes `req.query` for filtering (name, class, section, roll) |
+| `/api/v1/students` | GET | `handleGetAllStudents` | Returns `{ students: [...] }` to match frontend RTK Query types. Passes `req.query` for filtering (name, class, section, roll) |
 | `/api/v1/students` | POST | `handleAddStudent` | Creates student + sends verification email via `req.body` |
 | `/api/v1/students/:id` | GET | `handleGetStudentDetail` | Returns full student profile by ID |
-| `/api/v1/students/:id` | PUT | `handleUpdateStudent` | Merges `req.params.id` into payload for the `student_add_update` DB function |
+| `/api/v1/students/:id` | PUT | `handleUpdateStudent` | Merges `req.params.id` into payload (frontend strips `id` from body, only sends via URL param) |
 | `/api/v1/students/:id/status` | POST | `handleStudentStatus` | Toggles active/inactive, uses `req.user.id` from JWT middleware as reviewer |
+
+### Key Details
+- **Response shape**: The `GET /students` endpoint wraps results in `{ students }` to match the frontend `StudentData` type — the same pattern used by the staff controller
+- **Update payload**: The frontend's `updateStudent` mutation destructures `{ id, ...payload }` and only sends `payload` in the body, so the controller merges `req.params.id` back in
+- **Status reviewer**: `handleStudentStatus` extracts `req.user.id` from the JWT auth middleware as the reviewer, matching the staff status handler pattern
 
 ---
 
